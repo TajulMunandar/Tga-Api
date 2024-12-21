@@ -9,6 +9,7 @@
             <a href="{{ route('pelanggan.index') }}">Data Pelanggan</a>
             <a href="{{ route('barang.index') }}">Manajemen Stok</a>
             <a href="{{ route('tarif.index') }}">Tarif Laundry</a>
+            <a href="{{ route('transaksi.index') }}">Transaksi</a>
             <a href="{{ route('laporan') }}">Laporan Transaksi</a>
         </div>
         <div class="col col-lg-2 d-flex align-items-center">
@@ -19,6 +20,4 @@
             </form>
         </div>
     </div>
-
-
 </nav>

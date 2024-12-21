@@ -7,6 +7,7 @@ use App\Http\Controllers\ManajemenStockController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TarifController;
+use App\Http\Controllers\TransaksiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,5 +33,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::resource('/pelanggan', PelangganController::class);
     Route::resource('/barang', ManajemenStockController::class);
     Route::resource('/tarif', TarifController::class);
+    Route::resource('/transaksi', TransaksiController::class);
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');;
 });
