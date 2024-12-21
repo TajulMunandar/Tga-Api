@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pelanggan;
+use App\Models\Kasir;
 use Illuminate\Http\Request;
 
-class PelangganController extends Controller
+class KasirController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $pelanggans = Pelanggan::all();
-        return view('dashboard.pelanggan')->with(compact('pelanggans'));
+        $kasirs = Kasir::all();
+        return view('dashboard.kasir')->with(compact('kasirs'));
     }
 
     /**
@@ -53,13 +53,13 @@ class PelangganController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $pelanggan = Pelanggan::findOrFail($id);
+        $kasir = Kasir::findOrFail($id);
 
         // Perbarui status pelanggan menjadi aktif
-        $pelanggan->update(['status' => 1]);
+        $kasir->update(['status' => 1]);
 
         // Redirect dengan pesan sukses
-        return redirect()->route('pelanggan.index')->with('success', 'Status pelanggan berhasil diubah menjadi aktif.');
+        return redirect()->route('kasir.index')->with('success', 'Status kasir berhasil diubah menjadi aktif.');
     }
 
     /**

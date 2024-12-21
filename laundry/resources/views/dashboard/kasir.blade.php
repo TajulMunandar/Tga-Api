@@ -5,7 +5,7 @@
         <div class="col w-100">
             <div class="card w-100">
                 <div class="card-body">
-                    <h2>Data Pelanggan</h2>
+                    <h2>Data Kasir</h2>
                     <table class="table">
                         <thead>
                             <tr>
@@ -18,19 +18,19 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($pelanggans as $pelanggan)
+                            @foreach ($kasirs as $kasir)
                                 <tr>
                                     <th scope="row">{{ $loop->iteration }}</th>
-                                    <td>{{ $pelanggan->User->name }}</td>
-                                    <td>{{ $pelanggan->kode }}</td>
-                                    <td>{{ $pelanggan->no_hp }}</td>
-                                    <td>{{ $pelanggan->alamat }}</td>
+                                    <td>{{ $kasir->User->name }}</td>
+                                    <td>{{ $kasir->kode }}</td>
+                                    <td>{{ $kasir->no_hp }}</td>
+                                    <td>{{ $kasir->alamat }}</td>
                                     <td>
-                                        @if ($pelanggan->status == 1)
+                                        @if ($kasir->status == 1)
                                             Active
                                         @else
                                             Belum Active
-                                            <form action="{{ route('pelanggan.update', $pelanggan->id) }}" method="POST"
+                                            <form action="{{ route('kasir.update', $kasir->id) }}" method="POST"
                                                 class="d-inline">
                                                 @csrf
                                                 @method('PATCH')

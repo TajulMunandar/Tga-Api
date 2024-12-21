@@ -7,6 +7,7 @@
         <div class="col col-lg-10 d-flex justify-content-start">
             <a href="/">Dashboard</a>
             <a href="{{ route('pelanggan.index') }}">Data Pelanggan</a>
+            <a href="{{ route('kasir.index') }}">Data Kasir</a>
             <a href="{{ route('barang.index') }}">Manajemen Stok</a>
             <a href="{{ route('tarif.index') }}">Tarif Laundry</a>
             <a href="{{ route('transaksi.index') }}">Transaksi</a>

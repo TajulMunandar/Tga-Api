@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('kode')->unique();
             $table->string('alamat')->nullable();
             $table->string('no_hp')->nullable();
+            $table->boolean('status')->nullable()->default(0);
             $table->timestamps();
         });
     }

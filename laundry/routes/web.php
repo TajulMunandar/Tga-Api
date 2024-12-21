@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KasirController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ManajemenStockController;
 use App\Http\Controllers\PelangganController;
@@ -31,6 +32,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/', [DashboardController::class, 'index']);
     Route::resource('/profile', ProfileController::class);
     Route::resource('/pelanggan', PelangganController::class);
+    Route::resource('/kasir', KasirController::class);
     Route::resource('/barang', ManajemenStockController::class);
     Route::resource('/tarif', TarifController::class);
     Route::resource('/transaksi', TransaksiController::class);
