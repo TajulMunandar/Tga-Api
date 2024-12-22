@@ -13,16 +13,25 @@ class _ViewCustomersScreenState extends State<ViewCustomersScreen> {
   List<dynamic> _customers = [];
 
   Future<void> fetchCustomers() async {
-    final response = await http
-        .get(Uri.parse('http://127.0.0.1:8000/api/management/customers'));
+    try {
+      final response = await http.get(Uri.parse(
+          'http://localhost:8000/api/pelanggan')); // Ubah ke IP lokal yang sesuai
 
-    if (response.statusCode == 200) {
-      setState(() {
-        _customers = json.decode(response.body);
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengambil data pelanggan!')));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        if (mounted) {
+          setState(() {
+            _customers = data['data']; // Mengakses data pelanggan dari response
+          });
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal mengambil data pelanggan!')));
+      }
+    } catch (e) {
+      // Menangani error, jika ada masalah dengan API atau jaringan
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
     }
   }
 
@@ -36,15 +45,44 @@ class _ViewCustomersScreenState extends State<ViewCustomersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Data Pelanggan')),
-      body: ListView.builder(
-        itemCount: _customers.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(_customers[index]['name']),
-            subtitle: Text(_customers[index]['email']),
-          );
-        },
-      ),
+      body: _customers.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: _customers.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  elevation: 5,
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _customers[index]['user']['name'],
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Username: ${_customers[index]['user']['username']}',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Kode Pelanggan: ${_customers[index]['kode']}',
+                          style:
+                              const TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }

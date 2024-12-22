@@ -2,40 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class RegisterCashierScreen extends StatefulWidget {
-  const RegisterCashierScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  _RegisterCashierScreenState createState() => _RegisterCashierScreenState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _RegisterCashierScreenState extends State<RegisterCashierScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  Future<void> registerCashier() async {
+  Future<void> login() async {
     if (_formKey.currentState!.validate()) {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/auth/register/cashier'),
+        Uri.parse('http://127.0.0.1:8000/api/auth/login/cashier'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'name': _nameController.text,
           'email': _emailController.text,
           'password': _passwordController.text,
-          'role': 'cashier', // Menambahkan role secara otomatis
         }),
       );
 
       if (response.statusCode == 200) {
         // Success
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Kasir berhasil didaftarkan!')));
-      } else {
-        // Error
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Gagal mendaftar kasir!')));
+            .showSnackBar(SnackBar(content: Text('Login kasir berhasil!')));
+        // Lakukan navigasi atau aksi setelah login berhasil
+      } else {
+        final Map<String, dynamic> responseBody = json.decode(response.body);
+        final String errorMessage =
+            responseBody['message'] ?? 'Gagal login kasir!';
+        // Error
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal login kasir! ($errorMessage)')));
       }
     }
   }
@@ -43,23 +44,13 @@ class _RegisterCashierScreenState extends State<RegisterCashierScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Register Kasir')),
+      appBar: AppBar(title: Text('Login Kasir')),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Nama'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama harus diisi';
-                  }
-                  return null;
-                },
-              ),
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(labelText: 'Email'),
@@ -83,8 +74,8 @@ class _RegisterCashierScreenState extends State<RegisterCashierScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: registerCashier,
-                child: Text('Daftar Kasir'),
+                onPressed: login,
+                child: Text('Login Kasir'),
               ),
             ],
           ),

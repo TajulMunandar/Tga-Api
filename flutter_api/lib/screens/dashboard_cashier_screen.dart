@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class DashboardCashierScreen extends StatefulWidget {
   const DashboardCashierScreen({super.key});
@@ -13,30 +11,78 @@ class _DashboardCashierScreenState extends State<DashboardCashierScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Dashboard Kasir')),
+      appBar: AppBar(title: const Text('Dashboard Kasir')),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/view/customers');
+            _buildCard(
+              context,
+              icon: Icons.people,
+              title: 'Lihat Data Pelanggan',
+              description: 'Akses data pelanggan yang terdaftar.',
+              onTap: () {
+                Navigator.pushNamed(context, '/customer-data');
               },
-              child: Text('Lihat Data Pelanggan'),
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/manage/stock');
+            _buildCard(
+              context,
+              icon: Icons.inventory,
+              title: 'Kelola Stok Barang',
+              description: 'Periksa dan atur stok barang laundry.',
+              onTap: () {
+                Navigator.pushNamed(context, '/management-stock');
               },
-              child: Text('Kelola Stok Barang'),
             ),
-            ElevatedButton(
-              onPressed: () {
+            _buildCard(
+              context,
+              icon: Icons.checklist,
+              title: 'Verifikasi Pesanan Laundry',
+              description: 'Proses pesanan laundry pelanggan.',
+              onTap: () {
                 Navigator.pushNamed(context, '/verify/orders');
               },
-              child: Text('Verifikasi Pesanan Laundry'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(BuildContext context,
+      {required IconData icon,
+      required String title,
+      required String description,
+      required VoidCallback onTap}) {
+    return Card(
+      elevation: 4.0,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8.0),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Icon(icon, size: 40, color: Theme.of(context).primaryColor),
+              const SizedBox(width: 16.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                    ),
+                    const SizedBox(height: 4.0),
+                    Text(
+                      description,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
