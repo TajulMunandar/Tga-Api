@@ -26,6 +26,9 @@ Route::get('/pelanggan', [PelangganApiController::class, 'index']);
 Route::get('/transaksi', [TransaksiController::class, 'getData']);
 Route::get('/transaksiData', [TransaksiController::class, 'getDataForm']);
 Route::post('/transaksi', [TransaksiController::class, 'store']);
+Route::get('/transaksi-list', [TransaksiController::class, 'getDataTransaksi']);
+Route::put('/update-status/{kode}', [TransaksiController::class, 'updateStatus']);
+
 
 Route::get('/barangs', [BarangApiController::class, 'index']); // Ambil semua barang
 Route::patch('/barangs/{id}/stock', [BarangApiController::class, 'updateStock']); // Update stock

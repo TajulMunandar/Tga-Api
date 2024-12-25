@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:laundry_app/screens/screen_struk_pembayaran.dart';
 
 class ScreenPesanLaundry extends StatefulWidget {
   @override
@@ -9,17 +10,26 @@ class ScreenPesanLaundry extends StatefulWidget {
 }
 
 class _ScreenPesanLaundryState extends State<ScreenPesanLaundry> {
+  // Data & State Management
   List<dynamic> _barangs = [];
   List<dynamic> _tarifs = [];
   bool _isLoading = true;
-  TextEditingController _kodeController = TextEditingController();
-  TextEditingController _tanggalMasukController = TextEditingController();
-  TextEditingController _tanggalSelesaiController = TextEditingController();
-  TextEditingController _beratController = TextEditingController();
-  TextEditingController _stokController = TextEditingController(); // Input stok
-  int? _selectedBarangId;
+
+  // Controllers & FocusNodes
+  final TextEditingController _kodeController = TextEditingController();
+  final TextEditingController _tanggalMasukController = TextEditingController();
+  final TextEditingController _tanggalSelesaiController =
+      TextEditingController();
+  final TextEditingController _beratController = TextEditingController();
+
+  final FocusNode _kodeFocusNode = FocusNode();
+  final FocusNode _beratFocusNode = FocusNode();
+
+  // Transaksi Details & Selection
+  List<Map<String, dynamic>> _transaksiDetails = [];
   int? _selectedTarifId;
   bool _isAntarJemput = false;
+  double _totalBayar = 0.0;
 
   DateTime? _tanggalMasuk;
   DateTime? _tanggalSelesai;
@@ -30,7 +40,18 @@ class _ScreenPesanLaundryState extends State<ScreenPesanLaundry> {
     _fetchData();
   }
 
-  // Fungsi untuk mengambil data barang dan tarif
+  @override
+  void dispose() {
+    _kodeController.dispose();
+    _tanggalMasukController.dispose();
+    _tanggalSelesaiController.dispose();
+    _beratController.dispose();
+    _kodeFocusNode.dispose();
+    _beratFocusNode.dispose();
+    super.dispose();
+  }
+
+  // Fetch Data
   Future<void> _fetchData() async {
     try {
       final response =
@@ -38,7 +59,6 @@ class _ScreenPesanLaundryState extends State<ScreenPesanLaundry> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
         setState(() {
           _barangs = data['barangs'];
           _tarifs = data['tarifs'];
@@ -55,66 +75,89 @@ class _ScreenPesanLaundryState extends State<ScreenPesanLaundry> {
     }
   }
 
-  // Fungsi untuk memilih tanggal
+  // Date Picker Handler
   Future<void> _selectDate(BuildContext context, bool isMasuk) async {
-    DateTime initialDate = DateTime.now();
-    DateTime firstDate = DateTime(2000);
-    DateTime lastDate = DateTime(2101);
+    FocusScope.of(context)
+        .unfocus(); // Unfocus input before showing date picker
 
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: initialDate,
-      firstDate: firstDate,
-      lastDate: lastDate,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
     );
 
-    if (picked != null &&
-        picked != (isMasuk ? _tanggalMasuk : _tanggalSelesai)) {
+    if (picked != null) {
       setState(() {
         if (isMasuk) {
           _tanggalMasuk = picked;
-          _tanggalMasukController.text =
-              "${picked.toLocal()}".split(' ')[0]; // Format date
+          _tanggalMasukController.text = "${picked.toLocal()}".split(' ')[0];
         } else {
           _tanggalSelesai = picked;
-          _tanggalSelesaiController.text =
-              "${picked.toLocal()}".split(' ')[0]; // Format date
+          _tanggalSelesaiController.text = "${picked.toLocal()}".split(' ')[0];
         }
       });
     }
   }
 
-  // Fungsi untuk menyimpan transaksi
+  // Add Detail Barang
+  void _addTransaksiDetail() {
+    setState(() {
+      _transaksiDetails.add({'id_barang': null, 'stock': null});
+    });
+  }
+
+  // Calculate Total Biaya
+  void _calculateTotalBayar() {
+    double total = 0.0;
+
+    // Tambahkan tarif
+    if (_selectedTarifId != null) {
+      final selectedTarif =
+          _tarifs.firstWhere((tarif) => tarif['id'] == _selectedTarifId);
+      total += selectedTarif['tarif'] ?? 0.0;
+    }
+
+    // Tambahkan harga barang
+    for (var detail in _transaksiDetails) {
+      if (detail['id_barang'] != null && detail['stock'] != null) {
+        final selectedBarang = _barangs
+            .firstWhere((barang) => barang['id'] == detail['id_barang']);
+        final hargaBarang = selectedBarang['harga'] ?? 0.0;
+        total += hargaBarang * (detail['stock'] ?? 0);
+      }
+    }
+
+    setState(() {
+      _totalBayar = total;
+    });
+  }
+
+  // Save Transaksi
   Future<void> _saveTransaksi() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('user_id') ?? 0;
 
-    // Validasi input sebelum mengirim request
     if (_kodeController.text.isEmpty ||
         _tanggalMasukController.text.isEmpty ||
         _tanggalSelesaiController.text.isEmpty ||
         _beratController.text.isEmpty ||
-        _selectedBarangId == null ||
-        _selectedTarifId == null) {
+        _selectedTarifId == null ||
+        _transaksiDetails.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Harap lengkapi semua input')));
       return;
     }
 
     final requestData = {
-      'user_id': userId, // pastikan user_id dikirimkan
+      'user_id': userId,
       'kode': _kodeController.text,
       'tanggal_masuk': _tanggalMasukController.text,
       'tanggal_selesai': _tanggalSelesaiController.text,
       'berat': int.parse(_beratController.text),
       'jenis': _isAntarJemput ? 1 : 0,
       'id_tarif': _selectedTarifId,
-      'transaksi_details': [
-        {
-          'id_barang': _selectedBarangId,
-          'stock': int.parse(_stokController.text),
-        },
-      ],
+      'transaksi_details': _transaksiDetails,
     };
 
     try {
@@ -126,9 +169,28 @@ class _ScreenPesanLaundryState extends State<ScreenPesanLaundry> {
 
       if (response.statusCode == 201) {
         final data = json.decode(response.body);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(data['message'])));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ScreenStrukPembayaran(
+              kodeTransaksi: _kodeController.text,
+              tanggalMasuk: _tanggalMasukController.text,
+              tanggalSelesai: _tanggalSelesaiController.text,
+              totalBayar: _totalBayar,
+              detailBarang: _transaksiDetails.map((detail) {
+                final selectedBarang = _barangs.firstWhere(
+                    (barang) => barang['id'] == detail['id_barang']);
+                return {
+                  'nama_barang': selectedBarang['barang'],
+                  'stock': detail['stock'],
+                  'harga': selectedBarang['harga'],
+                };
+              }).toList(),
+            ),
+          ),
+        );
       } else {
+        print('Response body: ${response.body}');
         throw Exception('Gagal menyimpan transaksi');
       }
     } catch (e) {
@@ -138,6 +200,7 @@ class _ScreenPesanLaundryState extends State<ScreenPesanLaundry> {
     }
   }
 
+  // Build UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,66 +215,40 @@ class _ScreenPesanLaundryState extends State<ScreenPesanLaundry> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Input Kode Transaksi
                     TextField(
                       controller: _kodeController,
+                      focusNode: _kodeFocusNode,
                       decoration: InputDecoration(labelText: 'Kode Transaksi'),
                     ),
                     SizedBox(height: 10),
-                    // Input Tanggal Masuk
                     TextField(
                       controller: _tanggalMasukController,
                       decoration: InputDecoration(labelText: 'Tanggal Masuk'),
-                      readOnly: true, // Prevent manual editing
+                      readOnly: true,
                       onTap: () => _selectDate(context, true),
                     ),
                     SizedBox(height: 10),
-                    // Input Tanggal Selesai
                     TextField(
                       controller: _tanggalSelesaiController,
                       decoration: InputDecoration(labelText: 'Tanggal Selesai'),
-                      readOnly: true, // Prevent manual editing
+                      readOnly: true,
                       onTap: () => _selectDate(context, false),
                     ),
                     SizedBox(height: 10),
-                    // Input Berat
                     TextField(
                       controller: _beratController,
+                      focusNode: _beratFocusNode,
                       decoration: InputDecoration(labelText: 'Berat (Kg)'),
                       keyboardType: TextInputType.number,
                     ),
                     SizedBox(height: 10),
-                    // Dropdown untuk memilih barang
-                    DropdownButton<int>(
-                      hint: Text("Pilih Barang"),
-                      value: _selectedBarangId,
-                      onChanged: (int? newValue) {
-                        setState(() {
-                          _selectedBarangId = newValue;
-                        });
-                      },
-                      items: _barangs.map<DropdownMenuItem<int>>((item) {
-                        return DropdownMenuItem<int>(
-                          value: item['id'],
-                          child: Text(item['barang']),
-                        );
-                      }).toList(),
-                    ),
-                    SizedBox(height: 10),
-                    // Input Jumlah Stok
-                    TextField(
-                      controller: _stokController,
-                      decoration: InputDecoration(labelText: 'Jumlah Stok'),
-                      keyboardType: TextInputType.number,
-                    ),
-                    SizedBox(height: 10),
-                    // Dropdown untuk memilih tarif
                     DropdownButton<int>(
                       hint: Text("Pilih Tarif"),
                       value: _selectedTarifId,
                       onChanged: (int? newValue) {
                         setState(() {
                           _selectedTarifId = newValue;
+                          _calculateTotalBayar();
                         });
                       },
                       items: _tarifs.map<DropdownMenuItem<int>>((item) {
@@ -222,7 +259,6 @@ class _ScreenPesanLaundryState extends State<ScreenPesanLaundry> {
                       }).toList(),
                     ),
                     SizedBox(height: 10),
-
                     CheckboxListTile(
                       title: Text('Jenis Layanan: Antar Jemput'),
                       value: _isAntarJemput,
@@ -232,8 +268,90 @@ class _ScreenPesanLaundryState extends State<ScreenPesanLaundry> {
                         });
                       },
                     ),
+                    SizedBox(height: 10),
+                    Text('Detail Barang',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 10),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _transaksiDetails.length,
+                      itemBuilder: (context, index) {
+                        final selectedBarangId =
+                            _transaksiDetails[index]['id_barang'];
+                        final selectedBarang = selectedBarangId != null
+                            ? _barangs.firstWhere(
+                                (barang) => barang['id'] == selectedBarangId,
+                                orElse: () => null)
+                            : null;
+
+                        final maxStock = selectedBarang != null
+                            ? selectedBarang['stock']
+                            : 0;
+
+                        return Column(
+                          children: [
+                            DropdownButton<int>(
+                              hint: Text("Pilih Barang"),
+                              value: _transaksiDetails[index]['id_barang'],
+                              onChanged: (int? newValue) {
+                                setState(() {
+                                  _transaksiDetails[index]['id_barang'] =
+                                      newValue;
+                                  _calculateTotalBayar();
+                                });
+                              },
+                              items:
+                                  _barangs.map<DropdownMenuItem<int>>((item) {
+                                return DropdownMenuItem<int>(
+                                  value: item['id'],
+                                  child: Text(item['barang']),
+                                );
+                              }).toList(),
+                            ),
+                            TextField(
+                              decoration: InputDecoration(
+                                labelText: 'Jumlah Stok',
+                                errorText: (selectedBarangId != null &&
+                                        _transaksiDetails[index]['stock'] !=
+                                            null &&
+                                        _transaksiDetails[index]['stock'] >
+                                            maxStock)
+                                    ? 'Stok tidak mencukupi'
+                                    : null,
+                              ),
+                              keyboardType: TextInputType.number,
+                              onChanged: (value) {
+                                final inputStock = int.tryParse(value);
+                                setState(() {
+                                  if (inputStock != null &&
+                                      inputStock <= maxStock) {
+                                    _transaksiDetails[index]['stock'] =
+                                        inputStock;
+                                  } else {
+                                    _transaksiDetails[index]['stock'] =
+                                        maxStock;
+                                  }
+                                  _calculateTotalBayar();
+                                });
+                              },
+                            ),
+                            Divider(),
+                          ],
+                        );
+                      },
+                    ),
+                    ElevatedButton(
+                      onPressed: _addTransaksiDetail,
+                      child: Text('Tambah Barang'),
+                    ),
                     SizedBox(height: 20),
-                    // Tombol Simpan
+                    Text(
+                      'Total Bayar: Rp $_totalBayar',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _saveTransaksi,
                       child: Text('Simpan Transaksi'),

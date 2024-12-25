@@ -10,6 +10,7 @@ use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TransaksiController extends Controller
 {
@@ -73,7 +74,7 @@ class TransaksiController extends Controller
             // Membuat transaksi baru
             $transaksi = Transaksi::create([
                 'kode' => $request->kode,
-                'id_pelanggan' => $id_pelanggan,
+                'id_pelanggan' => $id_pelanggan->id,
                 'id_tarif' => $request->id_tarif,
                 'tanggal_masuk' => $request->tanggal_masuk,
                 'tanggal_selesai' => $request->tanggal_selesai,
@@ -106,6 +107,46 @@ class TransaksiController extends Controller
                 'message' => 'Terjadi kesalahan saat menyimpan transaksi.',
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    public function getDataTransaksi()
+    {
+        // Ambil semua transaksi dengan status 0
+        $transaksis = Transaksi::with(['Pelanggan.User', 'Tarif', 'TransaksiDetail.Barang'])
+            ->where('status', 0)
+            ->get();
+
+        return response()->json($transaksis);
+    }
+
+    public function updateStatus($kode, Request $request)
+    {
+        // Cari transaksi berdasarkan kode
+        $transaksi = Transaksi::where('kode', $kode)->first();
+
+        if ($transaksi) {
+            // Update status transaksi
+            $transaksi->status = $request->input('status');
+            $transaksi->save();
+
+            // Hitung total biaya berdasarkan berat dan tarif
+            $tarif = $transaksi->tarif->tarif;
+
+            // Menghitung total biaya berdasarkan berat dan tarif, serta harga barang dari TransaksiDetail
+            $totalBiaya = ($transaksi->berat * $tarif); // Biaya berdasarkan berat dan tarif
+
+            // Menambahkan biaya barang dari setiap TransaksiDetail
+            foreach ($transaksi->TransaksiDetail as $detail) {
+                $totalBiaya += $detail->Barang->harga; // Menambahkan harga setiap barang
+            }
+
+            return response()->json([
+                'message' => 'Status transaksi berhasil diubah',
+                'total_biaya' => $totalBiaya
+            ]);
+        } else {
+            return response()->json(['message' => 'Transaksi tidak ditemukan'], 404);
         }
     }
 }

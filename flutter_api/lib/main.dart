@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:laundry_app/screens/register_screen.dart';
 import 'package:laundry_app/screens/view_customers_screen.dart';
 import 'package:laundry_app/screens/view_stock_screen.dart';
+import 'package:laundry_app/screens/transaksi_list_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => ProfileScreen(),
         '/informasi': (context) => InformasiPesananScreen(),
         '/pesan': (context) => ScreenPesanLaundry(),
+        '/transaksi-list': (context) => TransaksiList(),
       },
     );
   }

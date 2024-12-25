@@ -37,11 +37,11 @@ class _DashboardCashierScreenState extends State<DashboardCashierScreen> {
             ),
             _buildCard(
               context,
-              icon: Icons.checklist,
-              title: 'Verifikasi Pesanan Laundry',
-              description: 'Proses pesanan laundry pelanggan.',
+              icon: Icons.receipt,
+              title: 'Lihat Semua Transaksi',
+              description: 'Lihat daftar semua transaksi yang telah dilakukan.',
               onTap: () {
-                Navigator.pushNamed(context, '/verify/orders');
+                Navigator.pushNamed(context, '/transaksi-list');
               },
             ),
           ],
