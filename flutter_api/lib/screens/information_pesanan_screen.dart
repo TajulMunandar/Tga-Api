@@ -20,7 +20,6 @@ class _InformasiPesananScreenState extends State<InformasiPesananScreen> {
   }
 
   // Fungsi untuk mengambil data pesanan terbaru dari API
-  // Fungsi untuk mengambil data pesanan dari API
   Future<void> _fetchPesanan() async {
     setState(() {
       _isLoading = true;
@@ -45,7 +44,6 @@ class _InformasiPesananScreenState extends State<InformasiPesananScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        // Konversi data yang diperlukan dari int ke bool
         setState(() {
           if (data['data'] != null) {
             _pesanan = {
@@ -83,7 +81,6 @@ class _InformasiPesananScreenState extends State<InformasiPesananScreen> {
     return jenis ? 'Antar Jemput' : 'Regular';
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(

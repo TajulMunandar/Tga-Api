@@ -75,4 +75,24 @@ class PelangganApiController extends Controller
             'data' => $pelanggan
         ], 200);
     }
+
+    public function getData()
+    {
+        $pelanggans = Pelanggan::with('user')->get(); // Memastikan relasi user ikut diambil
+        $data = $pelanggans->map(function ($pelanggan) {
+            return [
+                'name' => $pelanggan->user->name ?? 'Unknown', // Nama user
+                'username' => $pelanggan->user->username ?? 'Unknown', // Username user
+                'kode' => $pelanggan->kode,
+                'alamat' => $pelanggan->alamat,
+                'no_hp' => $pelanggan->no_hp,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data pelanggan berhasil diambil.',
+            'data' => $data,
+        ], 200);
+    }
 }

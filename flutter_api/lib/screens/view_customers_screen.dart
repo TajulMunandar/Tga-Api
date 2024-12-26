@@ -19,6 +19,7 @@ class _ViewCustomersScreenState extends State<ViewCustomersScreen> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
+        print(response.body);
         if (mounted) {
           setState(() {
             _customers = data['data']; // Mengakses data pelanggan dari response
@@ -44,45 +45,57 @@ class _ViewCustomersScreenState extends State<ViewCustomersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Data Pelanggan')),
-      body: _customers.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _customers.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  elevation: 5,
-                  margin:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _customers[index]['user']['name'],
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+        appBar: AppBar(title: Text('Data Pelanggan')),
+        body: _customers.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : ListView.builder(
+                itemCount: _customers.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    elevation: 5,
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 15),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _customers[index]
+                                ['name'], // Sesuai dengan JSON response
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Username: ${_customers[index]['user']['username']}',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Kode Pelanggan: ${_customers[index]['kode']}',
-                          style:
-                              const TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            'Username: ${_customers[index]['username']}', // Sesuai dengan JSON response
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Kode Pelanggan: ${_customers[index]['kode']}', // Sesuai dengan JSON response
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Alamat: ${_customers[index]['alamat'] ?? "Tidak tersedia"}',
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No HP: ${_customers[index]['no_hp'] ?? "Tidak tersedia"}',
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-    );
+                  );
+                },
+              ));
   }
 }

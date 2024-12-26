@@ -22,7 +22,7 @@ Route::post('/login', [AuthApiController::class, 'login']);
 Route::post('/registerApi', [AuthApiController::class, 'registerApi']);
 Route::get('/profile', [PelangganApiController::class, 'index']);
 Route::patch('/profile/{id}/pelanggan', [PelangganApiController::class, 'updatePelanggan']);
-Route::get('/pelanggan', [PelangganApiController::class, 'index']);
+Route::get('/pelanggan', [PelangganApiController::class, 'getData']);
 Route::get('/transaksi', [TransaksiController::class, 'getData']);
 Route::get('/transaksiData', [TransaksiController::class, 'getDataForm']);
 Route::post('/transaksi', [TransaksiController::class, 'store']);

@@ -25,14 +25,34 @@ class TransaksiController extends Controller
             ], 400);
         }
 
+        $pelanggan = Pelanggan::where('id_user', $userId)->first();
+
+        if (!$pelanggan) {
+            return response()->json([
+                'message' => 'Pelanggan tidak ditemukan'
+            ], 404);
+        }
+
         // Mengambil data transaksi berdasarkan user_id dan status = 1, diurutkan berdasarkan yang terbaru
-        $transaksis = Transaksi::where('id_pelanggan', $userId)
-            ->where('status', 1)
-            ->orderBy('created_at', 'desc') // Mengurutkan berdasarkan created_at yang terbaru
+        $transaksi = Transaksi::where('id_pelanggan', $pelanggan->id)
+            ->orderBy('created_at', 'desc')
             ->first();
 
+        if (!$transaksi) {
+            return response()->json([
+                'message' => 'Tidak ada transaksi'
+            ], 404);
+        }
+
         return response()->json([
-            'data' => $transaksis,
+            'data' => [
+                'kode' => $transaksi->kode,
+                'tanggal_masuk' => $transaksi->tanggal_masuk,
+                'tanggal_selesai' => $transaksi->tanggal_selesai,
+                'berat' => $transaksi->berat,
+                'jenis' => $transaksi->jenis, // Asumsikan ini int (1 atau 0)
+                'status' => $transaksi->status, // Asumsikan ini int (1 atau 0)
+            ],
         ]);
     }
 
